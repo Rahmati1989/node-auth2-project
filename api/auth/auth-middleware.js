@@ -1,6 +1,41 @@
 const { JWT_SECRET } = require("../secrets"); // use this secret!
 
-const restricted = (req, res, next) => {
+const restricted = async (req, res, next) => {
+  try {
+
+			const token = req.headers.authorization
+			if (!token){
+				return res.status(401).json({
+					message: "Invalid credintials"
+				})
+			}
+			jwt.verify(token, process.env.JWT_SECRET ,(err,decoded) => {
+				if(err) {
+					return res.status(401).json({
+					message: "Invalid credintials"
+				})
+			}
+			// if(role !== decoded.userRole){
+			// 	return res.status(401).json({
+			// 		message: "You Shall not pass"
+			// 	})
+			// }
+			if(role && role.indexOf(decoded.userRole) < roles.indexOf(role)) {
+				return res.status(403).json({
+					message: "You shall not pass",
+				})
+			}
+			// make the token's plyload avialbe to later middleware functions,
+			//  just in case it's needed for anything 
+			req.token = decoded
+			
+				next()
+			
+		}) 
+
+  }catch(err){
+    next(err)
+  }
   /*
     If the user does not provide a token in the Authorization header:
     status 401
